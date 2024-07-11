@@ -173,7 +173,7 @@ virtualKeyboard.addEventListener("click", function(e) {
 function regexSearch(query) {
     let regexRanged = [];
     try {
-        let regex = new RegExp(`^${query}$`, 'i'); 
+        let regex = new RegExp(query, 'i'); 
         for (let key in data) {
             if (regex.test(key.replaceAll(RegExp("[х̄̇]", "g"), ""))) {  // Only test the key, not the definition
                 regexRanged.push(["", key]);

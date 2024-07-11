@@ -154,5 +154,90 @@ searchItems = function (e) {
   }
 };
 
+
+// ... (keep all existing functions and variable declarations) ...
+
+// Add these new elements
+const regexCheckbox = document.getElementById("regex-check");
+const virtualKeyboard = document.getElementById("virtual-keyboard");
+
+// Virtual keyboard functionality
+virtualKeyboard.addEventListener("click", function(e) {
+    if (e.target.classList.contains("virtual-key")) {
+        input.value += e.target.textContent;
+        input.focus();
+        searchItems();
+    }
+});
+
+function regexSearch(query) {
+    let regexRanged = [];
+    try {
+        let regex = new RegExp(`^${query}$`, 'i'); 
+        for (let key in data) {
+            if (regex.test(key.replaceAll(RegExp("[х̄̇]", "g"), ""))) {  // Only test the key, not the definition
+                regexRanged.push(["", key]);
+            }
+        }
+    } catch (e) {
+        // Invalid regex, return empty result
+        console.error("Invalid regex:", e);
+    }
+    return regexRanged;
+}
+
+// Modify the existing searchItems function
+searchItems = function (e) {
+    result.innerHTML = "";
+    let searchValue = input.value;
+
+    let ranged;
+    if (regexCheckbox.checked) {
+        ranged = regexSearch(searchValue);
+    } else {
+        if (checkbox.checked) {
+            ranged = [];
+            for (key in data) {
+                if (
+                    key.toLowerCase().includes(searchValue.toLowerCase()) ||
+                    data[key]
+                        .join("")
+                        .toLowerCase()
+                        .replaceAll(RegExp("[х̄̇]", "g"), "")
+                        .includes(searchValue.toLowerCase())
+                ) {
+                    ranged.push(["", key]);
+                }
+            }
+        } else {
+            let variants = findVariants(searchValue, data);
+            let rangings = makeRanging(searchValue, variants);
+            ranged = rangeVariants(rangings);
+            ranged = ranged.slice(0, 50);
+        }
+    }
+
+    for (let el of ranged) {
+        let p = document.createElement("p");
+        let a = document.createElement("a");
+        a.setAttribute("href", "./full.html#" + el[1]);
+        a.setAttribute("target", "_blank");
+        a.innerHTML = el[1];
+        let span = document.createElement("span");
+        span.innerHTML = " &ndash; " + data[el[1]];
+        p.appendChild(a);
+        p.appendChild(span);
+        result.appendChild(p);
+    }
+
+    if (input.value == "") {
+        result.innerHTML = "";
+    }
+};
+
+// Keep existing event listeners
 input.addEventListener("input", searchItems);
 checkbox.addEventListener("change", searchItems);
+
+// Add new event listener for regex checkbox
+regexCheckbox.addEventListener("change", searchItems);

@@ -1,17 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Полный эвенский словарь</title>
-    <link rel="stylesheet" href="./assets/bootstrap.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>Эвенский словарь</title>
+  <link rel="stylesheet" href="./assets/styles.css">
 </head>
 <body>
-    <div id="full" class="container" style="width: 70%;margin: auto;margin-top: 5em;font-size: 16pt;">
-        <h1 style="text-align: center;margin-bottom: 2em;">Полный словарь эвенского языка</h1>
-
-    </div>
+  <main class="page dictionary-page">
+    <header class="dictionary-header">
+      <a class="back-link" href="./">← Вернуться к поиску</a>
+      <h1>Словарь по алфавиту</h1>
+      <p id="dictionary-status"></p>
+    </header>
+    <nav class="context-nav" aria-label="Навигация по словарю">
+      <a id="previous-context" href="#">← Предыдущие</a>
+      <a id="next-context" href="#">Следующие →</a>
+    </nav>
+    <section id="full" class="dictionary-entries" aria-label="Статьи словаря"></section>
+  </main>
+  <script src="./assets/dict.js"></script>
+  <script src="./assets/full_generate.js"></script>
 </body>
-<script src="./assets/dict.js"></script>
-<script src="./assets/full_generate.js"></script>
 </html>

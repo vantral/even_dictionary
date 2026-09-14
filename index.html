@@ -1,57 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Эвенский словарь</title>
-    <script src="./assets/jquery-2.2.4.min.js"></script>
-    <link rel="stylesheet" href="./assets/bootstrap.min.css">
-    <script src="./assets/dict.js"></script>
-    <style>
-        .virtual-key {
-            display: inline-block;
-            padding: 5px 10px;
-            margin: 2px;
-            border: 1px solid #ccc;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>Эвенский словарь</title>
+  <link rel="stylesheet" href="./assets/styles.css">
 </head>
-
 <body>
-    <div class="container" style="margin-top: 3em;">
-        <h1 style="text-align: center;margin-bottom: 2em;">Поиск по словарю эвенского языка</h1>
-        
-        <div class="search" style="width: 65%;margin:auto;">
-            <form autocomplete="off">
-                <input id="search" type="text" style="width: 100%;height: 2em;font-size: 16pt;padding: 0.5em;">
-            </form>
-            <div id="virtual-keyboard" style="margin-top: 1em;">
-                <span class="virtual-key">Ӈ</span>
-                <span class="virtual-key">Ө</span>
-                <span class="virtual-key">Ӫ</span>
-            </div>
-            <div class="form-check" style="font-size: 16pt;margin-top:1em;">
-                <input class="form-check-input" type="checkbox" value="" id="check">
-                <label class="form-check-label" for="check">
-                  полнотекстовый поиск
-                </label>
-            </div>
-            <div class="form-check" style="font-size: 16pt;margin-top:1em;">
-                <input class="form-check-input" type="checkbox" value="" id="regex-check">
-                <label class="form-check-label" for="regex-check">
-                  поиск по регулярным выражениям
-                </label>
-            </div>
+  <main class="page">
+    <header class="header"><h1>Эвенский словарь</h1></header>
+    <section class="search-panel" aria-label="Поиск по словарю">
+      <form id="search-form" role="search">
+        <label class="sr-only" for="search">Поисковый запрос</label>
+        <div class="search-row">
+          <input id="search" type="search" placeholder="Введите слово или перевод" autocomplete="off" autofocus>
+          <button class="submit" type="submit">Найти</button>
         </div>
-
-        <div class="result" id="result" style="width: 65%;margin:auto;margin-top: 3em;font-size: 16pt;">
-            
+        <div id="virtual-keyboard" class="keyboard" aria-label="Специальные эвенские символы">
+          <span>Спецсимволы:</span>
+          <button type="button" data-letter="ӈ">ӈ</button>
+          <button type="button" data-letter="ө">ө</button>
+          <button type="button" data-letter="ӫ">ӫ</button>
         </div>
-    </div>
-
+        <fieldset class="modes">
+          <legend>Режим:</legend>
+          <label><input type="checkbox" name="mode" value="translation"> По переводу</label>
+          <label><input type="checkbox" name="mode" value="regex"> Регулярное выражение</label>
+        </fieldset>
+        <p id="mode-hint" class="hint">Обычный поиск по эвенскому заголовку с учётом диалектных вариантов.</p>
+      </form>
+    </section>
+    <div class="result-heading"><p id="status" class="status" aria-live="polite"></p></div>
+    <section id="result" class="results" aria-label="Результаты поиска"></section>
+  </main>
+  <script src="./assets/dict.js"></script>
+  <script src="./assets/search-core.js"></script>
+  <script src="./assets/script.js"></script>
 </body>
-
-<script src="./assets/script.js"></script>
 </html>

@@ -1,243 +1,70 @@
-stripWord = function (word) {
-  word = word.toLowerCase().replaceAll(RegExp("[аяэеиыуюоёөӫ̄̇]", "g"), "");
-  return word;
-};
+(function () {
+  "use strict";
+  const engine = EvenDictionarySearch.createSearchEngine(dictionaryArticles);
+  const input = document.getElementById("search");
+  const result = document.getElementById("result");
+  const status = document.getElementById("status");
+  const hint = document.getElementById("mode-hint");
+  const form = document.getElementById("search-form");
+  const modes = Array.from(document.querySelectorAll('input[name="mode"]'));
+  let debounceTimer;
 
-findVariants = function (query, dct) {
-  possible_variants = Array();
-  stripped_query = stripWord(query);
-
-  for (key in dct) {
-    if (stripWord(key).includes(stripped_query)) {
-      possible_variants.push(key);
-    }
+  function activeMode() { return modes.find(function (mode) { return mode.checked; })?.value || "headword"; }
+  function updateHint() {
+    hint.textContent = activeMode() === "translation"
+      ? "Точное совпадение русского слова или фразы только в переводе. Результаты по алфавиту."
+      : activeMode() === "regex"
+        ? "Регулярное выражение применяется только к эвенским заголовкам."
+        : "Обычный поиск по эвенскому заголовку с учётом диалектных вариантов.";
   }
 
-  return possible_variants;
-};
-
-const levenshteinDistance = (s, t) => {
-  if (!s.length) return t.length;
-  if (!t.length) return s.length;
-  const arr = [];
-  for (let i = 0; i <= t.length; i++) {
-    arr[i] = [i];
-    for (let j = 1; j <= s.length; j++) {
-      arr[i][j] =
-        i === 0
-          ? j
-          : Math.min(
-              arr[i - 1][j] + 1,
-              arr[i][j - 1] + 1,
-              arr[i - 1][j - 1] + (s[j - 1] === t[i - 1] ? 0 : 1)
-            );
+  function render(searchResult) {
+    result.replaceChildren();
+    if (searchResult.error) { status.textContent = searchResult.error; return; }
+    const fragment = document.createDocumentFragment();
+    for (const item of searchResult.items) {
+      const article = document.createElement("article");
+      const heading = document.createElement("h2");
+      const link = document.createElement("a");
+      const definition = document.createElement("p");
+      link.href = `./full.html#article-${item.article_id}`;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = item.headword;
+      heading.appendChild(link);
+      definition.className = "definition";
+      definition.textContent = item.definitions.join("; ");
+      article.append(heading, definition);
+      fragment.appendChild(article);
     }
-  }
-  return arr[t.length][s.length];
-};
-
-function makeSoundPattern(word) {
-  word = word.replaceAll(RegExp("[аяэеиыуюоёөӫ]", "g"), "V");
-  word = word.replaceAll(RegExp("[бвгджзйклмнпрстфхцчшщъьӈ]", "g"), "C");
-  return word;
-}
-
-function makeRanging(query, listOfVariants) {
-  rangings = {};
-
-  for (variant of listOfVariants) {
-    ed_variant = variant.toLowerCase().replaceAll(RegExp("[х̄̇]", "g"), "");
-
-    dist_h_length = current_dist = levenshteinDistance(
-      ed_variant.substring(0, query.length),
-      query
-    );
-
-    ed_query = query
-      .replaceAll(RegExp("[оу]", "g"), "ө")
-      .replaceAll(RegExp("[ёю]", "g"), "ӫ");
-
-    dist_o = levenshteinDistance(ed_variant, ed_query);
-
-    if (dist_o > current_dist) {
-      ed_query = query;
-      current_dist = dist_h_length;
-    }
-
-    ed_front_variant = ed_variant.replaceAll("и", "ы");
-
-    dist_front_high = levenshteinDistance(ed_front_variant, ed_query);
-
-    if (dist_front_high < current_dist) {
-      ed_variant = ed_front_variant;
-      current_dist = dist_front_high;
-    }
-
-    ed_reduction_variant = ed_variant.replaceAll(RegExp("[аэ]", "g"), "ы");
-
-    dist_reduction = levenshteinDistance(ed_reduction_variant, ed_query);
-
-    if (stripWord(ed_variant).startsWith(stripWord(query))) {
-      sw = 0;
-    } else sw = 1;
-
-    if (makeSoundPattern(ed_variant).startsWith(makeSoundPattern(query))) {
-      sp = 0;
-    } else sp = 1;
-
-    rangings[variant] = [
-      sw,
-      sp,
-      dist_h_length,
-      dist_o,
-      dist_front_high,
-      dist_reduction,
-      variant.length,
-      variant,
-    ];
+    result.appendChild(fragment);
+    status.textContent = searchResult.total ? `Найдено: ${searchResult.total}` : "Ничего не найдено";
   }
 
-  return rangings;
-}
-
-function rangeVariants(rangings) {
-  arrayToRange = [];
-  entries = Object.entries(rangings);
-  for (r in entries) {
-    arrayToRange.push([entries[r][1], entries[r][0]]);
-  }
-  return arrayToRange.sort();
-}
-
-const input = document.getElementById("search");
-const checkbox = document.getElementById("check");
-const result = document.getElementById("result");
-
-searchItems = function (e) {
-  result.innerHTML = "";
-  if (checkbox.checked) {
-    ranged = [];
-    for (key in data) {
-      if (
-        key.toLowerCase().includes(input.value.toLowerCase()) ||
-        data[key]
-          .join("")
-          .toLowerCase()
-          .replaceAll(RegExp("[х̄̇]", "g"), "")
-          .includes(input.value.toLowerCase())
-      ) {
-        ranged.push(["", key]);
-      }
-    }
-  } else {
-    variants = findVariants(input.value, data);
-    rangings = makeRanging(input.value, variants);
-    ranged = rangeVariants(rangings);
-    ranged = ranged.slice(0, 50);
+  function searchItems() {
+    const query = input.value.trim();
+    if (!query) { result.replaceChildren(); status.textContent = ""; return; }
+    const mode = activeMode();
+    render(mode === "translation" ? engine.translationSearch(query, 200)
+      : mode === "regex" ? engine.regexSearch(query, 200) : engine.rankedSearch(query, 50));
   }
 
-  for (el of ranged) {
-    p = document.createElement("p");
-    a = document.createElement("a");
-    a.setAttribute("href", "./full.html#" + el[1]);
-    a.setAttribute("target", "_blank");
-    a.innerHTML = el[1];
-    span = document.createElement("span");
-    span.innerHTML = " &ndash; " + data[el[1]];
-    p.appendChild(a);
-    p.appendChild(span);
-    result.appendChild(p);
-  }
-
-  if (input.value == "") {
-    result.innerHTML = "";
-  }
-};
-
-
-// ... (keep all existing functions and variable declarations) ...
-
-// Add these new elements
-const regexCheckbox = document.getElementById("regex-check");
-const virtualKeyboard = document.getElementById("virtual-keyboard");
-
-// Virtual keyboard functionality
-virtualKeyboard.addEventListener("click", function(e) {
-    if (e.target.classList.contains("virtual-key")) {
-        input.value += e.target.textContent;
-        input.focus();
-        searchItems();
-    }
-});
-
-function regexSearch(query) {
-    let regexRanged = [];
-    try {
-        let regex = new RegExp(query, 'i'); 
-        for (let key in data) {
-            if (regex.test(key.replaceAll(RegExp("[х̄̇]", "g"), ""))) {  // Only test the key, not the definition
-                regexRanged.push(["", key]);
-            }
-        }
-    } catch (e) {
-        // Invalid regex, return empty result
-        console.error("Invalid regex:", e);
-    }
-    return regexRanged;
-}
-
-// Modify the existing searchItems function
-searchItems = function (e) {
-    result.innerHTML = "";
-    let searchValue = input.value;
-
-    let ranged;
-    if (regexCheckbox.checked) {
-        ranged = regexSearch(searchValue);
-    } else {
-        if (checkbox.checked) {
-            ranged = [];
-            for (key in data) {
-                if (
-                    key.toLowerCase().includes(searchValue.toLowerCase()) ||
-                    data[key]
-                        .join("")
-                        .toLowerCase()
-                        .replaceAll(RegExp("[х̄̇]", "g"), "")
-                        .includes(searchValue.toLowerCase())
-                ) {
-                    ranged.push(["", key]);
-                }
-            }
-        } else {
-            let variants = findVariants(searchValue, data);
-            let rangings = makeRanging(searchValue, variants);
-            ranged = rangeVariants(rangings);
-            ranged = ranged.slice(0, 50);
-        }
-    }
-
-    for (let el of ranged) {
-        let p = document.createElement("p");
-        let a = document.createElement("a");
-        a.setAttribute("href", "./full.html#" + el[1]);
-        a.setAttribute("target", "_blank");
-        a.innerHTML = el[1];
-        let span = document.createElement("span");
-        span.innerHTML = " &ndash; " + data[el[1]];
-        p.appendChild(a);
-        p.appendChild(span);
-        result.appendChild(p);
-    }
-
-    if (input.value == "") {
-        result.innerHTML = "";
-    }
-};
-
-// Keep existing event listeners
-input.addEventListener("input", searchItems);
-checkbox.addEventListener("change", searchItems);
-
-// Add new event listener for regex checkbox
-regexCheckbox.addEventListener("change", searchItems);
+  function scheduleSearch() { clearTimeout(debounceTimer); debounceTimer = setTimeout(searchItems, 80); }
+  form.addEventListener("submit", function (event) { event.preventDefault(); clearTimeout(debounceTimer); searchItems(); });
+  input.addEventListener("input", scheduleSearch);
+  modes.forEach(function (checkbox) {
+    checkbox.addEventListener("change", function () {
+      if (checkbox.checked) modes.forEach(function (other) { if (other !== checkbox) other.checked = false; });
+      updateHint();
+      searchItems();
+    });
+  });
+  document.getElementById("virtual-keyboard").addEventListener("click", function (event) {
+    const letter = event.target.dataset.letter;
+    if (!letter) return;
+    input.setRangeText(letter, input.selectionStart ?? input.value.length, input.selectionEnd ?? input.value.length, "end");
+    input.focus();
+    scheduleSearch();
+  });
+  updateHint();
+})();

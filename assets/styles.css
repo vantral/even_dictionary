@@ -1,0 +1,50 @@
+:root { color-scheme: light; font-family: Arial, Helvetica, sans-serif; color: #1d1d1f; background: #fff; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 280px; background: #fff; }
+button, input { font: inherit; }
+.page { width: min(1040px, calc(100% - 32px)); margin: 0 auto; padding: 30px 0 64px; }
+.header { margin-bottom: 20px; padding-left: 13px; border-left: 4px solid #16a7ad; }
+h1 { margin: 0; font-size: clamp(28px, 4vw, 38px); line-height: 1.1; letter-spacing: -.025em; }
+.search-panel { padding: 15px 0 13px; border-top: 1px solid #dadcdd; border-bottom: 1px solid #dadcdd; }
+.search-row { display: flex; gap: 9px; }
+#search { min-width: 0; flex: 1; height: 46px; padding: 0 13px; color: #171719; background: #fff; border: 1px solid #aeb3b6; border-radius: 4px; outline: none; font-size: 17px; }
+#search:focus { border-color: #159aa0; box-shadow: 0 0 0 2px rgba(22, 167, 173, .12); }
+.submit { min-width: 105px; padding: 0 20px; color: #fff; background: #252729; border: 0; border-radius: 4px; font-weight: 700; cursor: pointer; }
+.submit:hover { background: #3a3d40; }
+.keyboard { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-top: 9px; color: #707478; font-size: 12px; }
+.keyboard button { min-width: 29px; height: 27px; padding: 0 6px; color: #202426; background: #fff; border: 1px solid #c8ccce; border-radius: 3px; cursor: pointer; }
+.keyboard button:hover, .keyboard button:focus-visible { color: #087f84; border-color: #16a7ad; outline: none; }
+.modes { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 11px 0 0; padding: 0; border: 0; }
+.modes legend { float: left; width: auto; margin: 2px 6px 0 0; color: #686c70; font-size: 13px; font-weight: 700; }
+.modes label { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
+.modes input { width: 16px; height: 16px; accent-color: #159aa0; }
+.hint { clear: both; margin: 9px 0 0; color: #74787c; font-size: 12px; line-height: 1.4; }
+.result-heading { min-height: 42px; display: flex; align-items: end; }
+.status { margin: 0 0 7px; color: #62666a; font-size: 13px; }
+.results, .dictionary-entries { border-top: 2px solid #16a7ad; }
+article { display: grid; grid-template-columns: minmax(120px, 190px) 1fr; column-gap: 20px; padding: 11px 4px; border-bottom: 1px solid #e2e3e3; }
+article h2 { margin: 0; color: #087f84; font-size: 18px; line-height: 1.35; }
+article h2 a { color: inherit; text-decoration: none; }
+article h2 a:hover, article h2 a:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+.definition { margin: 0; color: #343638; font-size: 14px; line-height: 1.45; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.dictionary-page { padding-top: 22px; }
+.dictionary-header { margin-bottom: 12px; }
+.dictionary-header h1 { margin-top: 13px; font-size: clamp(24px, 4vw, 32px); }
+.dictionary-header p { margin: 5px 0 0; color: #666b6e; font-size: 13px; }
+.back-link, .context-nav a { color: #087f84; text-decoration: none; }
+.back-link:hover, .context-nav a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.context-nav { display: flex; justify-content: space-between; min-height: 32px; margin-bottom: 5px; font-size: 13px; }
+.dictionary-entries .selected-entry { margin: 0 -10px; padding-left: 14px; padding-right: 14px; border-left: 4px solid #16a7ad; }
+.dictionary-entries .selected-entry h2 { color: #202426; }
+@media (max-width: 600px) {
+  .page { width: min(100% - 22px, 1040px); padding: 22px 0 44px; }
+  .header { margin-left: 2px; }
+  .search-panel { padding: 12px 0; }
+  .search-row { flex-direction: column; }
+  .submit { min-height: 44px; }
+  .modes { gap: 10px 16px; }
+  .modes legend { width: 100%; margin-bottom: 2px; }
+  article { display: block; padding: 10px 2px; }
+  article h2 { margin-bottom: 4px; }
+}

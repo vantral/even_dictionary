@@ -7,12 +7,13 @@
   const hint = document.getElementById("mode-hint");
   const form = document.getElementById("search-form");
   const modes = Array.from(document.querySelectorAll('input[name="mode"]'));
+  const aboutDialog = document.getElementById("about-dialog");
   let debounceTimer;
 
   function activeMode() { return modes.find(function (mode) { return mode.checked; })?.value || "headword"; }
   function updateHint() {
     hint.textContent = activeMode() === "translation"
-      ? "Точное совпадение русского слова или фразы только в переводе. Результаты по алфавиту."
+      ? "Поиск только в переводе: обычный текст совпадает целиком, также можно вводить регулярное выражение. Результаты по алфавиту."
       : activeMode() === "regex"
         ? "Регулярное выражение применяется только к эвенским заголовкам."
         : "Обычный поиск по эвенскому заголовку с учётом диалектных вариантов.";
@@ -67,4 +68,5 @@
     scheduleSearch();
   });
   updateHint();
+  document.getElementById("about-open").addEventListener("click", function () { aboutDialog.showModal(); });
 })();

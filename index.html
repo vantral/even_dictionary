@@ -9,12 +9,17 @@
 </head>
 <body>
   <main class="page">
-    <header class="header"><h1>Эвенский словарь</h1></header>
+    <header class="header">
+      <div class="header-row">
+        <h1>Эвенский словарь</h1>
+        <button id="about-open" class="about-button" type="button">О словаре</button>
+      </div>
+    </header>
     <section class="search-panel" aria-label="Поиск по словарю">
       <form id="search-form" role="search">
         <label class="sr-only" for="search">Поисковый запрос</label>
         <div class="search-row">
-          <input id="search" type="search" placeholder="Введите слово или перевод" autocomplete="off" autofocus>
+          <input id="search" type="search" placeholder="Введите слово или перевод" maxlength="200" autocomplete="off" autofocus>
           <button class="submit" type="submit">Найти</button>
         </div>
         <div id="virtual-keyboard" class="keyboard" aria-label="Специальные эвенские символы">
@@ -34,6 +39,27 @@
     <div class="result-heading"><p id="status" class="status" aria-live="polite"></p></div>
     <section id="result" class="results" aria-label="Результаты поиска"></section>
   </main>
+
+  <dialog id="about-dialog" class="about-dialog" aria-labelledby="about-title">
+    <div class="dialog-heading">
+      <h2 id="about-title">О словаре</h2>
+      <form method="dialog"><button class="dialog-close" aria-label="Закрыть">×</button></form>
+    </div>
+    <p>Поисковый интерфейс для эвенско-русского словаря с учётом некоторых особенностей быстринского говора.</p>
+    <h3>Поиск и сортировка</h3>
+    <dl class="search-help">
+      <dt>Обычный</dt>
+      <dd>Ищет по эвенскому заголовку и ранжирует по точности совпадения. Начальный <b>х</b> не учитывается; эквивалентны <b>с/ш</b>, <b>лл/лр</b>, <b>мн/мр</b> и <b>ӈр/ӈн</b>.</dd>
+      <dt>По переводу</dt>
+      <dd>Ищет только в русском переводе. Обычный текст совпадает как целое слово или фраза; можно вводить регулярное выражение. Результаты идут по алфавиту.</dd>
+      <dt>Регулярное выражение</dt>
+      <dd>Применяет выражение только к эвенским заголовкам и сортирует найденные статьи по алфавиту.</dd>
+    </dl>
+    <p>Клик по заголовку открывает в новой вкладке выбранную статью и по 25 соседних статей с каждой стороны.</p>
+    <h3>Источник данных</h3>
+    <p>Роббек В. А., Роббек М. Е. <cite>Эвенско-русский словарь: свыше 14 000 слов.</cite> Новосибирск: Наука, 2005. 353 с. ISBN 5-02-032334-9.</p>
+    <form method="dialog"><button class="dialog-action">Закрыть</button></form>
+  </dialog>
   <script src="./assets/dict.js"></script>
   <script src="./assets/search-core.js"></script>
   <script src="./assets/script.js"></script>

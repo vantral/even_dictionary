@@ -8,7 +8,7 @@
   const VOWELS = /[аяэеиыуюоёөӫ]/g;
   const CONSONANTS = /[бвгджзйклмнпрстфхцчшщъьӈ]/g;
   const REMOVABLE_MARKS = /[\u0304\u0307]/g;
-  const WORDS = /[0-9a-zа-яё]+/giu;
+  const TRANSLATION_BOUNDARY = "0-9a-zа-яё";
   const collator = new Intl.Collator("ru", { sensitivity: "base" });
 
   function removeDictionaryMarks(value) {
@@ -19,19 +19,14 @@
     return removeDictionaryMarks(value).trim().replace(/^х/, "");
   }
 
-  function tokenize(value) {
-    return removeDictionaryMarks(value).match(WORDS) || [];
+  function dialectEquivalent(value) {
+    return value.replace(/лр/g, "лл").replace(/мр/g, "мн").replace(/ӈр/g, "ӈн").replace(/ш/g, "с");
   }
 
-  function containsExactWords(haystack, needle) {
-    if (!needle.length || needle.length > haystack.length) return false;
-    outer: for (let start = 0; start <= haystack.length - needle.length; start += 1) {
-      for (let offset = 0; offset < needle.length; offset += 1) {
-        if (haystack[start + offset] !== needle[offset]) continue outer;
-      }
-      return true;
-    }
-    return false;
+  function translationExpression(value) {
+    const normalized = removeDictionaryMarks(value);
+    new RegExp(normalized, "iu");
+    return new RegExp(`(?:^|[^${TRANSLATION_BOUNDARY}])(?:${normalized})(?![${TRANSLATION_BOUNDARY}])`, "iu");
   }
 
   function stripVowels(value) { return value.replace(VOWELS, ""); }
@@ -79,14 +74,15 @@
   function createSearchEngine(articles) {
     const entries = articles.map(function (article, articleId) {
       const normalized = normalizeHeadword(article.headword);
+      const equivalent = dialectEquivalent(normalized);
       return {
         article: article,
         articleId: articleId,
         normalized: normalized,
-        consonants: stripVowels(normalized),
-        pattern: soundPattern(normalized),
-        forms: makeForms(normalized),
-        translationWords: tokenize(article.glosses.join(" ")),
+        consonants: stripVowels(equivalent),
+        pattern: soundPattern(equivalent),
+        forms: makeForms(equivalent),
+        translationText: removeDictionaryMarks(article.glosses.join(" ")),
       };
     });
 
@@ -97,9 +93,10 @@
     function rankedSearch(rawQuery, limit) {
       const query = normalizeHeadword(rawQuery);
       if (!query) return { items: [], total: 0 };
-      const queryConsonants = stripVowels(query);
-      const queryPattern = soundPattern(query);
-      const queryForms = makeForms(query);
+      const queryEquivalent = dialectEquivalent(query);
+      const queryConsonants = stripVowels(queryEquivalent);
+      const queryPattern = soundPattern(queryEquivalent);
+      const queryForms = makeForms(queryEquivalent);
       const candidates = entries.filter(function (entry) {
         return queryConsonants ? entry.consonants.includes(queryConsonants) : entry.normalized.includes(query);
       });
@@ -109,6 +106,7 @@
           entry.normalized === query ? 0 : 1,
           equivalent ? 0 : 1,
           entry.normalized.startsWith(query) ? 0 : 1,
+          entry.forms[0].startsWith(queryForms[0]) ? 0 : 1,
           entry.consonants.startsWith(queryConsonants) ? 0 : 1,
           entry.pattern.startsWith(queryPattern) ? 0 : 1,
           minimumFormDistance(entry.forms, queryForms, true),
@@ -121,9 +119,11 @@
     }
 
     function translationSearch(rawQuery, limit) {
-      const queryWords = tokenize(rawQuery);
-      if (!queryWords.length) return { items: [], total: 0 };
-      const matches = entries.filter(function (entry) { return containsExactWords(entry.translationWords, queryWords); });
+      if (!rawQuery.trim()) return { items: [], total: 0 };
+      let expression;
+      try { expression = translationExpression(rawQuery); }
+      catch (_) { return { items: [], total: 0, error: "Некорректное регулярное выражение" }; }
+      const matches = entries.filter(function (entry) { return expression.test(entry.translationText); });
       matches.sort(function (left, right) { return collator.compare(left.article.headword, right.article.headword); });
       return { items: matches.slice(0, limit).map(item), total: matches.length };
     }

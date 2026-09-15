@@ -7,15 +7,18 @@
   const hint = document.getElementById("mode-hint");
   const form = document.getElementById("search-form");
   const modes = Array.from(document.querySelectorAll('input[name="mode"]'));
+  const regexDiacriticsOption = document.getElementById("regex-diacritics-option");
+  const respectDiacritics = document.getElementById("respect-diacritics");
   const aboutDialog = document.getElementById("about-dialog");
   let debounceTimer;
 
   function activeMode() { return modes.find(function (mode) { return mode.checked; })?.value || "headword"; }
   function updateHint() {
+    regexDiacriticsOption.hidden = activeMode() !== "regex";
     hint.textContent = activeMode() === "translation"
-      ? "Поиск только в переводе: обычный текст совпадает целиком, также можно вводить регулярное выражение. Результаты по алфавиту."
+      ? "Поиск только в переводе без различения диакритик: можно вводить слово, его часть или регулярное выражение. Результаты по алфавиту."
       : activeMode() === "regex"
-        ? "Регулярное выражение применяется только к эвенским заголовкам."
+        ? "Регулярное выражение применяется только к эвенским заголовкам. По умолчанию диакритики не учитываются."
         : "Обычный поиск по эвенскому заголовку с учётом диалектных вариантов.";
   }
 
@@ -47,7 +50,7 @@
     if (!query) { result.replaceChildren(); status.textContent = ""; return; }
     const mode = activeMode();
     render(mode === "translation" ? engine.translationSearch(query, 200)
-      : mode === "regex" ? engine.regexSearch(query, 200) : engine.rankedSearch(query, 50));
+      : mode === "regex" ? engine.regexSearch(query, 200, respectDiacritics.checked) : engine.rankedSearch(query, 50));
   }
 
   function scheduleSearch() { clearTimeout(debounceTimer); debounceTimer = setTimeout(searchItems, 80); }
@@ -60,6 +63,7 @@
       searchItems();
     });
   });
+  respectDiacritics.addEventListener("change", searchItems);
   document.getElementById("virtual-keyboard").addEventListener("click", function (event) {
     const letter = event.target.dataset.letter;
     if (!letter) return;

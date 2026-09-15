@@ -33,6 +33,9 @@ h1 { margin: 0; font-size: clamp(28px, 4vw, 38px); line-height: 1.1; letter-spac
 .modes legend { float: left; width: auto; margin: 2px 6px 0 0; color: #686c70; font-size: 13px; font-weight: 700; }
 .modes label { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
 .modes input { width: 16px; height: 16px; accent-color: #159aa0; }
+.regex-option { display: inline-flex; align-items: center; gap: 6px; margin-top: 9px; color: #505458; font-size: 13px; cursor: pointer; }
+.regex-option[hidden] { display: none; }
+.regex-option input { width: 16px; height: 16px; margin: 0; accent-color: #159aa0; }
 .hint { clear: both; margin: 9px 0 0; color: #74787c; font-size: 12px; line-height: 1.4; }
 .result-heading { min-height: 42px; display: flex; align-items: end; }
 .status { margin: 0 0 7px; color: #62666a; font-size: 13px; }

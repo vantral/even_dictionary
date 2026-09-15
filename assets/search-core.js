@@ -8,7 +8,6 @@
   const VOWELS = /[аяэеиыуюоёөӫ]/g;
   const CONSONANTS = /[бвгджзйклмнпрстфхцчшщъьӈ]/g;
   const REMOVABLE_MARKS = /[\u0304\u0307]/g;
-  const TRANSLATION_BOUNDARY = "0-9a-zа-яё";
   const collator = new Intl.Collator("ru", { sensitivity: "base" });
 
   function removeDictionaryMarks(value) {
@@ -27,8 +26,7 @@
 
   function translationExpression(value) {
     const normalized = removeDictionaryMarks(value);
-    new RegExp(normalized, "iu");
-    return new RegExp(`(?:^|[^${TRANSLATION_BOUNDARY}])(?:${normalized})(?![${TRANSLATION_BOUNDARY}])`, "iu");
+    return new RegExp(normalized, "iu");
   }
 
   function stripVowels(value) { return value.replace(VOWELS, ""); }
@@ -81,6 +79,7 @@
         article: article,
         articleId: articleId,
         normalized: normalized,
+        exactForm: String(article.headword || "").normalize("NFC").toLowerCase().trim().replace(/^х/, ""),
         initialH: removeDictionaryMarks(article.headword).trim().startsWith("х"),
         consonants: stripVowels(equivalent),
         pattern: soundPattern(equivalent),
@@ -133,12 +132,15 @@
       return { items: matches.slice(0, limit).map(item), total: matches.length };
     }
 
-    function regexSearch(rawQuery, limit) {
+    function regexSearch(rawQuery, limit, respectDiacritics) {
       if (!rawQuery) return { items: [], total: 0 };
       let expression;
-      try { expression = new RegExp(rawQuery, "iu"); }
+      const query = respectDiacritics ? String(rawQuery).normalize("NFC").toLowerCase() : removeDictionaryMarks(rawQuery);
+      try { expression = new RegExp(query, "iu"); }
       catch (_) { return { items: [], total: 0, error: "Некорректное регулярное выражение" }; }
-      const matches = entries.filter(function (entry) { return expression.test(entry.normalized); });
+      const matches = entries.filter(function (entry) {
+        return expression.test(respectDiacritics ? entry.exactForm : entry.normalized);
+      });
       matches.sort(function (left, right) { return collator.compare(left.article.headword, right.article.headword); });
       return { items: matches.slice(0, limit).map(item), total: matches.length };
     }

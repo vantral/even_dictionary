@@ -20,7 +20,9 @@
   }
 
   function dialectEquivalent(value) {
-    return value.replace(/лр/g, "лл").replace(/мр/g, "мн").replace(/ӈр/g, "ӈн").replace(/ш/g, "с");
+    return value.replace(/лр/g, "лл").replace(/мр/g, "мн").replace(/ӈр/g, "ӈн").replace(/ш/g, "с")
+      .replace(/йэ/g, "е").replace(/йе/g, "е")
+      .replace(/йа/g, "я").replace(/йо/g, "ё").replace(/йу/g, "ю");
   }
 
   function translationExpression(value) {
@@ -79,6 +81,7 @@
         article: article,
         articleId: articleId,
         normalized: normalized,
+        initialH: removeDictionaryMarks(article.headword).trim().startsWith("х"),
         consonants: stripVowels(equivalent),
         pattern: soundPattern(equivalent),
         forms: makeForms(equivalent),
@@ -97,13 +100,15 @@
       const queryConsonants = stripVowels(queryEquivalent);
       const queryPattern = soundPattern(queryEquivalent);
       const queryForms = makeForms(queryEquivalent);
+      const queryInitialH = removeDictionaryMarks(rawQuery).trim().startsWith("х");
       const candidates = entries.filter(function (entry) {
-        return queryConsonants ? entry.consonants.includes(queryConsonants) : entry.normalized.includes(query);
+        return queryConsonants ? entry.consonants.includes(queryConsonants) : entry.forms[0].includes(queryEquivalent);
       });
       const ranked = candidates.map(function (entry) {
         const equivalent = entry.forms.some(function (form, index) { return form === queryForms[index]; });
         return { article: entry.article, entry: entry, score: [
           entry.normalized === query ? 0 : 1,
+          entry.initialH === queryInitialH ? 0 : 1,
           equivalent ? 0 : 1,
           entry.normalized.startsWith(query) ? 0 : 1,
           entry.forms[0].startsWith(queryForms[0]) ? 0 : 1,
